@@ -3,13 +3,14 @@ import cron from 'node-cron';
 import redis from './src/redis.js';
 import discord, { CustomEvents } from './src/discord.js';
 import dotenv from 'dotenv';
+import '@fluencelabs/js-client.node';
+import { Fluence } from '@fluencelabs/js-client.api';
 dotenv.config();
 
 import {
 	get_success_transansactions,
 	get_node_clock,
 } from './src/_aqua/transactions.js';
-import { Fluence } from '@fluencelabs/fluence';
 
 export enum REDIS_KEY {
 	LATEST_TIMESTAMP = 'rk_latest_timestamp',
@@ -44,17 +45,10 @@ async function aqua_function_test() {
 }
 
 async function connectToFluence() {
-	console.log(
-		process.env.FLUENCE_NODE_MULTIADDRESS as any,
-		process.env.FLUENCE_NODE_PEERID as any
-	);
-	await Fluence.start({
-		connectTo: {
-			multiaddr: process.env.FLUENCE_NODE_MULTIADDRESS as any,
-			peerId: process.env.FLUENCE_NODE_PEERID as any,
-		},
+	await Fluence.connect({
+		multiaddr: process.env.FLUENCE_NODE_MULTIADDRESS as any,
+		peerId: process.env.FLUENCE_NODE_PEERID as any,
 	});
-	console.log(Fluence.getStatus().peerId);
 }
 
 async function setCurrentTimestamp() {
