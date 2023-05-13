@@ -5,7 +5,7 @@ func get_node_clock() -> FdbClock:
       results <- Node.get_node_clock()
   <- results
 
-func get_success_transansactions(from: i64, to: i64) -> FdbTransactionsResult:
+func get_success_transactions(from: i64, to: i64) -> FdbTransactionsResult:
   on HOST_PEER_ID:
-      results <- Node.get_success_transansactions(from, to)
+      results <- Node.get_success_transactions(from, to)
   <- results  
