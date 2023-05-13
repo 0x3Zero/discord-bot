@@ -8,40 +8,51 @@ import { Fluence } from '@fluencelabs/js-client.api';
 dotenv.config();
 
 import {
-	get_success_transansactions,
+	get_success_transactions,
 	get_node_clock,
 } from './src/_aqua/transactions.js';
 
 export enum REDIS_KEY {
-	LATEST_TIMESTAMP = 'rk_latest_timestamp',
+	PREVIOUS_TIMETAMP = 'rk_previous_timestamp',
 }
 
 const app = express();
 const PORT = process.env.PORT;
 
 await connectToFluence();
-// await aqua_function_test();
 
+// set initial timestamp on start server
 setCurrentTimestamp();
 
-// every 5 seconds
-cron.schedule('*/5 * * * * *', async () => {
-	setCurrentTimestamp();
+// every 10 seconds
+cron.schedule('*/10 * * * * *', async () => {
+	let { clock, successful_txs } = await get_transactions();
+	await redis.set(REDIS_KEY.PREVIOUS_TIMETAMP, clock.timestamp);
 
-	let timestamp = await redis.get(REDIS_KEY.LATEST_TIMESTAMP);
-	discord.emit(`${CustomEvents.NewTransactions}`, timestamp);
+	let newTxs = successful_txs.transactions.length > 0;
+
+	if (newTxs)
+		discord.emit(
+			`${CustomEvents.NewTransactions}`,
+			successful_txs.transactions
+		);
 });
 
 app.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`);
 });
 
-async function aqua_function_test() {
+async function get_transactions() {
 	let clock = await get_node_clock();
-	console.log('clock', clock);
 
-	let success_tx = await get_success_transansactions(1683096823, Date.now());
-	console.log('success_tx', success_tx);
+	let cached = await redis.get(REDIS_KEY.PREVIOUS_TIMETAMP);
+
+	let success_tx = await get_success_transactions(
+		parseInt(`${cached}`),
+		clock.timestamp
+	);
+
+	return { clock, successful_txs: success_tx };
 }
 
 async function connectToFluence() {
@@ -52,5 +63,5 @@ async function connectToFluence() {
 }
 
 async function setCurrentTimestamp() {
-	await redis.set(REDIS_KEY.LATEST_TIMESTAMP, Date.now());
+	await redis.set(REDIS_KEY.PREVIOUS_TIMETAMP, Date.now());
 }
