@@ -1,6 +1,7 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { Get_success_transactionsResult } from './_aqua/transactions.js';
 import dotenv from 'dotenv';
+import { shortenAddress } from './utils.js';
 dotenv.config();
 
 export enum CustomEvents {
@@ -14,7 +15,7 @@ type Transaction = Pick<
 
 const discord = new Client({ intents: GatewayIntentBits.Guilds });
 
-const CHANNELS_TO_SEND_MESSAGE = ['first-bot-testroom', 'new-beats'];
+const CHANNELS_TO_SEND_MESSAGE = ['first-bot-testroom', 'forked-beats'];
 
 discord.on(`${CustomEvents.NewTransactions}`, async (tx: Transaction[]) => {
 	CHANNELS_TO_SEND_MESSAGE.forEach((name) => {
@@ -34,7 +35,11 @@ discord.on(`${CustomEvents.NewTransactions}`, async (tx: Transaction[]) => {
 
 		unique.forEach((tx) => {
 			//@ts-ignore
-			channel.send(`New beat has been added to Collabeat #${tx.token_id}`);
+			channel.send(
+				`New beat has been added to Collabeat #${
+					tx.token_id
+				} by ${shortenAddress(tx.public_key)}`
+			);
 
 			// remixed
 			// channel.send(`Sheet ${tx.token_id} has been remixed from Sheet ${tx.token_id} by ${tx.public_key} `)
