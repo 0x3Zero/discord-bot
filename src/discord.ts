@@ -15,7 +15,7 @@ type Transaction = Pick<
 
 const discord = new Client({ intents: GatewayIntentBits.Guilds });
 
-const CHANNELS_TO_SEND_MESSAGE = ['first-bot-testroom', 'forked-beats'];
+const CHANNELS_TO_SEND_MESSAGE = ['first-bot-testroom', 'new-beats'];
 
 discord.on(`${CustomEvents.NewTransactions}`, async (tx: Transaction[]) => {
 	CHANNELS_TO_SEND_MESSAGE.forEach((name) => {
@@ -36,7 +36,7 @@ discord.on(`${CustomEvents.NewTransactions}`, async (tx: Transaction[]) => {
 		unique.forEach((tx) => {
 			//@ts-ignore
 			channel.send(
-				`New beat has been added to Collabeat #${
+				`@everyone! New beat has been added to Collabeat #${
 					tx.token_id
 				} by ${shortenAddress(tx.public_key)}`
 			);
