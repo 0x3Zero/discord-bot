@@ -7,10 +7,6 @@ import '@fluencelabs/js-client.node';
 import { Fluence } from '@fluencelabs/js-client.api';
 dotenv.config();
 
-import {
-	get_complete_transactions,
-	get_node_clock,
-} from './src/_aqua/transactions.js';
 
 export enum REDIS_KEY {
 	PREVIOUS_TIMETAMP = 'rk_previous_timestamp',
@@ -29,7 +25,7 @@ cron.schedule('*/10 * * * * *', async () => {
 	let { clock, successful_txs } = await get_transactions();
 	await redis.set(REDIS_KEY.PREVIOUS_TIMETAMP, clock.timestamp);
 
-	let txs = successful_txs.transactions.filter(el => el.meta_contract_id === process.env.COLLABEAT_META_CONTRACT_ID)
+	let txs = successful_txs.transactions.filter((el: any) => el.meta_contract_id === process.env.COLLABEAT_META_CONTRACT_ID)
 
 	if (txs.length > 0) 
 		discord.emit(
@@ -42,17 +38,42 @@ app.listen(PORT, () => {
 	console.log(`Listening on port ${PORT}`);
 });
 
+const URL = `${process.env.LINEAGE_NODE_URL}/api/v0/json-rpc`
+
 async function get_transactions() {
-	let clock = await get_node_clock();
+	let res_clock = await fetch(URL, {
+		method: "POST",
+		body: JSON.stringify({
+			"jsonrpc": "2.0",
+			"method": "get_node_clock",
+			"id": "string"
+		}),
+		headers: {
+			'Content-Type': "application/json"
+		}
+	})
+
+	let json_clock = await res_clock.json()
+	let clock = json_clock.result
 
 	let cached = await redis.get(REDIS_KEY.PREVIOUS_TIMETAMP);
 
-	let success_tx = await get_complete_transactions(
-		parseInt(`${cached}`),
-		clock.timestamp
-	);
+	let res_txs = await fetch(URL, {
+		method: "POST",
+		body: JSON.stringify({
+			"jsonrpc": "2.0",
+			"method": "get_complete_transactions",
+			"params": [parseInt(`${cached}`), clock.timestamp], 
+			"id": "string"
+		}),
+		headers: {
+			'Content-Type': "application/json"
+		}
+	})
 
-	return { clock, successful_txs: success_tx };
+	const success_tx = await res_txs.json()
+
+	return { clock, successful_txs: success_tx.result };
 }
 
 async function connectToFluence() {
