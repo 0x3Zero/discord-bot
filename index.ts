@@ -8,7 +8,7 @@ import { Fluence } from '@fluencelabs/js-client.api';
 dotenv.config();
 
 import {
-	get_success_transactions,
+	get_complete_transactions,
 	get_node_clock,
 } from './src/_aqua/transactions.js';
 
@@ -29,9 +29,9 @@ cron.schedule('*/10 * * * * *', async () => {
 	let { clock, successful_txs } = await get_transactions();
 	await redis.set(REDIS_KEY.PREVIOUS_TIMETAMP, clock.timestamp);
 
-	let newTxs = successful_txs.transactions.length > 0;
+	let txs = successful_txs.transactions.filter(el => el.meta_contract_id === process.env.COLLABEAT_META_CONTRACT_ID)
 
-	if (newTxs)
+	if (txs.length > 0) 
 		discord.emit(
 			`${CustomEvents.NewTransactions}`,
 			successful_txs.transactions
@@ -47,7 +47,7 @@ async function get_transactions() {
 
 	let cached = await redis.get(REDIS_KEY.PREVIOUS_TIMETAMP);
 
-	let success_tx = await get_success_transactions(
+	let success_tx = await get_complete_transactions(
 		parseInt(`${cached}`),
 		clock.timestamp
 	);

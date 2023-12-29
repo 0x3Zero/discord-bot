@@ -1,5 +1,5 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js';
-import { Get_success_transactionsResult } from './_aqua/transactions.js';
+import { Get_complete_transactionsResult } from './_aqua/transactions.js';
 import dotenv from 'dotenv';
 import { shortenAddress } from './utils.js';
 dotenv.config();
@@ -9,7 +9,7 @@ export enum CustomEvents {
 }
 
 type Transaction = Pick<
-	Get_success_transactionsResult,
+	Get_complete_transactionsResult,
 	'transactions'
 >['transactions'][0];
 

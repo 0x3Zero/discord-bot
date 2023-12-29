@@ -1,11 +1,13 @@
+import "@fluencelabs/aqua-lib/builtin.aqua"
+import "@0x3zero/aqua-lib/builtin.aqua"
 import "./node.aqua"
 
-func get_node_clock() -> FdbClock:
-  on HOST_PEER_ID:
-      results <- Node.get_node_clock()
-  <- results
+func get_complete_transactions(from: i64, to: i64) -> FdbTransactionsResult:
+    on HOST_PEER_ID:
+        results <- Node.get_complete_transactions(from, to)
+    <- results
 
-func get_success_transactions(from: i64, to: i64) -> FdbTransactionsResult:
-  on HOST_PEER_ID:
-      results <- Node.get_success_transactions(from, to)
-  <- results  
+func get_node_clock() -> FdbClock:
+    on HOST_PEER_ID:
+        results <- Node.get_node_clock()
+    <- results
